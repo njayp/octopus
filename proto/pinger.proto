@@ -1,0 +1,10 @@
+syntax = "proto3";
+package proto;
+option go_package = "./proto";
+
+service Pinger {
+    rpc Ping(Empty) returns (Empty);
+    rpc Reverse(stream Empty) returns (stream Empty);
+}
+
+message Empty {}
