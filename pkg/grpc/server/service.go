@@ -11,7 +11,7 @@ import (
 )
 
 type Service struct {
-	proto.UnimplementedPingerServer
+	proto.UnimplementedReverseConnectionServer
 }
 
 func NewService() error {
@@ -22,14 +22,18 @@ func NewService() error {
 	}
 
 	s := grpc.NewServer()
-	proto.RegisterPingerServer(s, &Service{})
+	proto.RegisterReverseConnectionServer(s, &Service{})
 	return s.Serve(lis)
 }
 
-func (s *Service) Ping(_ context.Context, _ *proto.Empty) (*proto.Empty, error) {
-	return &proto.Empty{}, nil
-}
-
-func (s *Service) Reverse(srv proto.Pinger_ReverseServer) error {
+func (s *Service) Connect(srv proto.ReverseConnection_ConnectServer) error {
+	conn, err := grpc.NewClient("", grpc.WithContextDialer(func(ctx context.Context, s string) (net.Conn, error) {
+		return newReverseConn(srv)
+	}))
+	if err != nil {
+		return err
+	}
+	cli := proto.NewPingerClient(conn)
+	cli.Ping(srv.Context(), &proto.Empty{})
 	return nil
 }

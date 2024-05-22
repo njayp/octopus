@@ -19,8 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Pinger_Ping_FullMethodName    = "/proto.Pinger/Ping"
-	Pinger_Reverse_FullMethodName = "/proto.Pinger/Reverse"
+	Pinger_Ping_FullMethodName = "/proto.Pinger/Ping"
 )
 
 // PingerClient is the client API for Pinger service.
@@ -28,7 +27,6 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PingerClient interface {
 	Ping(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
-	Reverse(ctx context.Context, opts ...grpc.CallOption) (Pinger_ReverseClient, error)
 }
 
 type pingerClient struct {
@@ -48,43 +46,11 @@ func (c *pingerClient) Ping(ctx context.Context, in *Empty, opts ...grpc.CallOpt
 	return out, nil
 }
 
-func (c *pingerClient) Reverse(ctx context.Context, opts ...grpc.CallOption) (Pinger_ReverseClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Pinger_ServiceDesc.Streams[0], Pinger_Reverse_FullMethodName, opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &pingerReverseClient{stream}
-	return x, nil
-}
-
-type Pinger_ReverseClient interface {
-	Send(*Empty) error
-	Recv() (*Empty, error)
-	grpc.ClientStream
-}
-
-type pingerReverseClient struct {
-	grpc.ClientStream
-}
-
-func (x *pingerReverseClient) Send(m *Empty) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *pingerReverseClient) Recv() (*Empty, error) {
-	m := new(Empty)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
 // PingerServer is the server API for Pinger service.
 // All implementations must embed UnimplementedPingerServer
 // for forward compatibility
 type PingerServer interface {
 	Ping(context.Context, *Empty) (*Empty, error)
-	Reverse(Pinger_ReverseServer) error
 	mustEmbedUnimplementedPingerServer()
 }
 
@@ -94,9 +60,6 @@ type UnimplementedPingerServer struct {
 
 func (UnimplementedPingerServer) Ping(context.Context, *Empty) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
-}
-func (UnimplementedPingerServer) Reverse(Pinger_ReverseServer) error {
-	return status.Errorf(codes.Unimplemented, "method Reverse not implemented")
 }
 func (UnimplementedPingerServer) mustEmbedUnimplementedPingerServer() {}
 
@@ -129,32 +92,6 @@ func _Pinger_Ping_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Pinger_Reverse_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(PingerServer).Reverse(&pingerReverseServer{stream})
-}
-
-type Pinger_ReverseServer interface {
-	Send(*Empty) error
-	Recv() (*Empty, error)
-	grpc.ServerStream
-}
-
-type pingerReverseServer struct {
-	grpc.ServerStream
-}
-
-func (x *pingerReverseServer) Send(m *Empty) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *pingerReverseServer) Recv() (*Empty, error) {
-	m := new(Empty)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
 // Pinger_ServiceDesc is the grpc.ServiceDesc for Pinger service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -167,10 +104,125 @@ var Pinger_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Pinger_Ping_Handler,
 		},
 	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "pinger.proto",
+}
+
+const (
+	ReverseConnection_Connect_FullMethodName = "/proto.ReverseConnection/Connect"
+)
+
+// ReverseConnectionClient is the client API for ReverseConnection service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type ReverseConnectionClient interface {
+	Connect(ctx context.Context, opts ...grpc.CallOption) (ReverseConnection_ConnectClient, error)
+}
+
+type reverseConnectionClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewReverseConnectionClient(cc grpc.ClientConnInterface) ReverseConnectionClient {
+	return &reverseConnectionClient{cc}
+}
+
+func (c *reverseConnectionClient) Connect(ctx context.Context, opts ...grpc.CallOption) (ReverseConnection_ConnectClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ReverseConnection_ServiceDesc.Streams[0], ReverseConnection_Connect_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &reverseConnectionConnectClient{stream}
+	return x, nil
+}
+
+type ReverseConnection_ConnectClient interface {
+	Send(*Chunk) error
+	Recv() (*Chunk, error)
+	grpc.ClientStream
+}
+
+type reverseConnectionConnectClient struct {
+	grpc.ClientStream
+}
+
+func (x *reverseConnectionConnectClient) Send(m *Chunk) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *reverseConnectionConnectClient) Recv() (*Chunk, error) {
+	m := new(Chunk)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// ReverseConnectionServer is the server API for ReverseConnection service.
+// All implementations must embed UnimplementedReverseConnectionServer
+// for forward compatibility
+type ReverseConnectionServer interface {
+	Connect(ReverseConnection_ConnectServer) error
+	mustEmbedUnimplementedReverseConnectionServer()
+}
+
+// UnimplementedReverseConnectionServer must be embedded to have forward compatible implementations.
+type UnimplementedReverseConnectionServer struct {
+}
+
+func (UnimplementedReverseConnectionServer) Connect(ReverseConnection_ConnectServer) error {
+	return status.Errorf(codes.Unimplemented, "method Connect not implemented")
+}
+func (UnimplementedReverseConnectionServer) mustEmbedUnimplementedReverseConnectionServer() {}
+
+// UnsafeReverseConnectionServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ReverseConnectionServer will
+// result in compilation errors.
+type UnsafeReverseConnectionServer interface {
+	mustEmbedUnimplementedReverseConnectionServer()
+}
+
+func RegisterReverseConnectionServer(s grpc.ServiceRegistrar, srv ReverseConnectionServer) {
+	s.RegisterService(&ReverseConnection_ServiceDesc, srv)
+}
+
+func _ReverseConnection_Connect_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(ReverseConnectionServer).Connect(&reverseConnectionConnectServer{stream})
+}
+
+type ReverseConnection_ConnectServer interface {
+	Send(*Chunk) error
+	Recv() (*Chunk, error)
+	grpc.ServerStream
+}
+
+type reverseConnectionConnectServer struct {
+	grpc.ServerStream
+}
+
+func (x *reverseConnectionConnectServer) Send(m *Chunk) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *reverseConnectionConnectServer) Recv() (*Chunk, error) {
+	m := new(Chunk)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// ReverseConnection_ServiceDesc is the grpc.ServiceDesc for ReverseConnection service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var ReverseConnection_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "proto.ReverseConnection",
+	HandlerType: (*ReverseConnectionServer)(nil),
+	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "Reverse",
-			Handler:       _Pinger_Reverse_Handler,
+			StreamName:    "Connect",
+			Handler:       _ReverseConnection_Connect_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},

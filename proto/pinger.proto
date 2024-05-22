@@ -4,7 +4,15 @@ option go_package = "./proto";
 
 service Pinger {
     rpc Ping(Empty) returns (Empty);
-    rpc Reverse(stream Empty) returns (stream Empty);
 }
 
+service ReverseConnection {
+    rpc Connect(stream Chunk) returns (stream Chunk);
+}
+
+
 message Empty {}
+
+message Chunk {
+    bytes data = 1;
+}
