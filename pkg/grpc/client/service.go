@@ -10,12 +10,11 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-type Client struct {
-	client proto.ReverseConnectionClient
-	server proto.PingerServer
+type ReverseServer struct {
+	proto.UnimplementedPingerServer
 }
 
-func NewClient() *Client {
+func (c *ReverseServer) Connect(ctx context.Context) error {
 	// TODO add tls option
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
 	url := fmt.Sprintf("%s:%v", config.Env.Address, config.Env.Port)
@@ -23,13 +22,18 @@ func NewClient() *Client {
 	if err != nil {
 		panic(err)
 	}
-	return &Client{client: proto.NewReverseConnectionClient(conn)}
-}
-
-func (c *Client) Connect(ctx context.Context) error {
-	stream, err := c.client.Connect(ctx)
+	cli := proto.NewReverseConnectionClient(conn)
+	stream, err := cli.Connect(ctx)
 	if err != nil {
 		panic(err)
 	}
-	st
+
+	s := grpc.NewServer()
+	proto.RegisterPingerServer(s, &ReverseServer{})
+	return s.Serve(NewListener(stream))
+}
+
+func (rs *ReverseServer) Ping(ctx context.Context, _ *proto.Empty) (*proto.Empty, error) {
+	println("got ping")
+	return nil, nil
 }

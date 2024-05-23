@@ -6,6 +6,7 @@ import (
 	"net"
 
 	"github.com/njayp/octopus/pkg/config"
+	"github.com/njayp/octopus/pkg/grpc/conn"
 	"github.com/njayp/octopus/pkg/grpc/proto"
 	"google.golang.org/grpc"
 )
@@ -28,7 +29,7 @@ func NewService() error {
 
 func (s *Service) Connect(srv proto.ReverseConnection_ConnectServer) error {
 	conn, err := grpc.NewClient("", grpc.WithContextDialer(func(ctx context.Context, s string) (net.Conn, error) {
-		return newReverseConn(srv)
+		return conn.NewReverseConn(srv)
 	}))
 	if err != nil {
 		return err

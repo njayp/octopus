@@ -1,29 +1,43 @@
-package server
+package conn
 
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"net"
 	"time"
 
 	"github.com/njayp/octopus/pkg/grpc/proto"
 )
 
-type myConn struct {
-	srv proto.ReverseConnection_ConnectServer
-	rw  bufio.ReadWriter
+type stream interface {
+	Send(*proto.Chunk) error
+	Recv() (*proto.Chunk, error)
+	Context() context.Context
 }
 
-func newReverseConn(srv proto.ReverseConnection_ConnectServer) (*myConn, error) {
+type myConn struct {
+	srv stream
+	rw  *bufio.ReadWriter
+}
+
+func NewReverseConn(srv stream) (*myConn, error) {
 	a := make([]byte, 0)
 	rw := bufio.NewReadWriter(bufio.NewReader(bytes.NewBuffer(a)), bufio.NewWriter(bytes.NewBuffer(a)))
 
 	go func() {
-		chunk, _ := srv.Recv()
-		rw.Write(chunk.Data)
+		for {
+			select {
+			case <-srv.Context().Done():
+				return
+			default:
+				chunk, _ := srv.Recv()
+				rw.Write(chunk.Data)
+			}
+		}
 	}()
 
-	return &myConn{}, nil
+	return &myConn{srv: srv, rw: rw}, nil
 }
 
 func (c *myConn) Read(b []byte) (int, error) {

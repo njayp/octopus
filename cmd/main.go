@@ -1,5 +1,10 @@
 package main
 
+import "github.com/njayp/octopus/pkg/grpc/server"
+
 func main() {
-	println("yo")
+	err := server.NewService()
+	if err != nil {
+		println(err)
+	}
 }
