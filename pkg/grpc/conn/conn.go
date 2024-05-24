@@ -16,12 +16,12 @@ type stream interface {
 	Context() context.Context
 }
 
-type myConn struct {
-	srv stream
-	rw  *bufio.ReadWriter
+type reversedConn struct {
+	s  stream
+	rw *bufio.ReadWriter
 }
 
-func NewReverseConn(srv stream) (*myConn, error) {
+func NewReversedConn(srv stream) (*reversedConn, error) {
 	a := make([]byte, 0)
 	rw := bufio.NewReadWriter(bufio.NewReader(bytes.NewBuffer(a)), bufio.NewWriter(bytes.NewBuffer(a)))
 
@@ -31,47 +31,50 @@ func NewReverseConn(srv stream) (*myConn, error) {
 			case <-srv.Context().Done():
 				return
 			default:
-				chunk, _ := srv.Recv()
+				chunk, err := srv.Recv()
+				if err != nil {
+					panic(err)
+				}
 				rw.Write(chunk.Data)
 			}
 		}
 	}()
 
-	return &myConn{srv: srv, rw: rw}, nil
+	return &reversedConn{s: srv, rw: rw}, nil
 }
 
-func (c *myConn) Read(b []byte) (int, error) {
+func (c *reversedConn) Read(b []byte) (int, error) {
 	return c.rw.Read(b)
 }
 
-func (c *myConn) Write(b []byte) (int, error) {
-	err := c.srv.Send(&proto.Chunk{Data: b})
+func (c *reversedConn) Write(b []byte) (int, error) {
+	err := c.s.Send(&proto.Chunk{Data: b})
 	if err != nil {
 		return 0, err
 	}
 	return len(b), err
 }
 
-func (c *myConn) Close() error {
+func (c *reversedConn) Close() error {
 	return nil
 }
 
-func (c *myConn) LocalAddr() net.Addr {
+func (c *reversedConn) LocalAddr() net.Addr {
+	return &net.IPAddr{IP: net.IPv4zero}
+}
+
+func (c *reversedConn) RemoteAddr() net.Addr {
+	return &net.IPAddr{IP: net.IPv4zero}
+}
+
+func (c *reversedConn) SetDeadline(t time.Time) error {
 	return nil
 }
 
-func (c *myConn) RemoteAddr() net.Addr {
+func (c *reversedConn) SetReadDeadline(t time.Time) error {
 	return nil
 }
 
-func (c *myConn) SetDeadline(t time.Time) error {
-	return nil
-}
-
-func (c *myConn) SetReadDeadline(t time.Time) error {
-	return nil
-}
-
-func (c *myConn) SetWriteDeadline(t time.Time) error {
+func (c *reversedConn) SetWriteDeadline(t time.Time) error {
 	return nil
 }

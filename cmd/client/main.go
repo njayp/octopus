@@ -1,33 +1,38 @@
-package client
+package main
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/njayp/octopus/pkg/config"
-	"github.com/njayp/octopus/pkg/grpc/pinger"
+	"github.com/njayp/octopus/pkg/grpc/client"
 	"github.com/njayp/octopus/pkg/grpc/proto"
 	"github.com/njayp/octopus/pkg/grpc/util"
 	"google.golang.org/grpc"
 )
 
-type ReverseServer struct {
-	pinger.Pinger
+func main() {
+	reverse()
 }
 
-func (c *ReverseServer) Connect(ctx context.Context) error {
+func ping() {
 	url := fmt.Sprintf("%s:%v", config.Env.Address, config.Env.Port)
 	conn, err := grpc.NewClient(url, util.Creds)
 	if err != nil {
 		panic(err)
 	}
-	cli := proto.NewReverseConnectionClient(conn)
-	stream, err := cli.Connect(ctx)
+	cli := proto.NewPingerClient(conn)
+	_, err = cli.Ping(context.Background(), &proto.Empty{})
 	if err != nil {
 		panic(err)
 	}
+	println("got ping")
+}
 
-	s := grpc.NewServer()
-	proto.RegisterPingerServer(s, &ReverseServer{})
-	return s.Serve(NewListener(stream))
+func reverse() {
+	cli := client.ReverseServer{}
+	err := cli.Connect(context.Background())
+	if err != nil {
+		println(err)
+	}
 }

@@ -16,7 +16,7 @@ func NewListener(srv proto.ReverseConnection_ConnectClient) *myListener {
 }
 
 func (l *myListener) Accept() (net.Conn, error) {
-	return conn.NewReverseConn(l.srv)
+	return conn.NewReversedConn(l.srv)
 }
 
 func (l *myListener) Close() error {
@@ -24,5 +24,5 @@ func (l *myListener) Close() error {
 }
 
 func (l *myListener) Addr() net.Addr {
-	return nil
+	return &net.IPAddr{IP: net.IPv4zero}
 }
